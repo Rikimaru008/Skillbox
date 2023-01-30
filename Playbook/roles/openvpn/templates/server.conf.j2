@@ -1,0 +1,19 @@
+dev tun
+ca {{ openvpn_path }}/server/ca.crt
+cert {{ openvpn_path }}/server/server.crt
+key {{ openvpn_path }}/server/server.key
+dh none
+server 10.200.0.0 255.255.255.0
+ifconfig-pool-persist /var/log/openvpn/ipp.txt
+push "redirect-gateway def1 bypass-dhcp"
+keepalive 10 120
+tls-crypt {{ openvpn_path }}/server/ta.key
+cipher AES-256-GCM
+auth SHA256
+user  nobody
+group nogroup
+persist-key
+persist-tun
+status /var/log/openvpn/openvpn-status.log
+verb 3
+explicit-exit-notify 1
