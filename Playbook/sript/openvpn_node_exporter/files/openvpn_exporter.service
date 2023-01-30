@@ -1,0 +1,11 @@
+[Unit]
+Description=Prometheus OpenVPN Node Exporter
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/openvpn_exporter -openvpn.status_paths /var/log/openvpn/openvpn-status.log
+
+[Install]
+WantedBy=multi-user.target

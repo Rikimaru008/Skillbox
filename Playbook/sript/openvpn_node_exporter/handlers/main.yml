@@ -1,0 +1,8 @@
+---
+# handlers file for openvpn_node_exporter
+- name: reload_daemon_and_restart_openvpn_exporter
+  systemd:
+    name: openvpn_exporter
+    state: restarted
+    daemon_reload: yes
+    enabled: yes
