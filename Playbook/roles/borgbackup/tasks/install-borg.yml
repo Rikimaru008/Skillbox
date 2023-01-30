@@ -1,0 +1,6 @@
+# tasks file for ansible-borg
+- name: install borgbackup
+  package:
+    name: borgbackup
+    state: present
+  become: yes
