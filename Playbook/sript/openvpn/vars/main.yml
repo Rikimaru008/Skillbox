@@ -1,0 +1,44 @@
+---
+openvpn_server: "{{ inventory_hostname }}"
+openvpn_easyrsa_version: v3.1.0
+openvpn_path: "/etc/openvpn"
+openvpn_clients_keys: "/home/ubuntu/clients/keys"
+openvpn_base_config: "{{ openvpn_path }}/{{ item }}.conf"
+openvpn_output_dir: "/home/ubuntu/clients"
+openvpn_ca_key: "{{ openvpn_path }}/server/ca.crt"
+openvpn_cert: "{{ openvpn_path }}/server/{{ item }}.crt"
+openvpn_key: "{{ openvpn_path }}/server/{{ item }}.key"
+openvpn_tls_key: "{{ openvpn_path }}/server/ta.key"
+
+local_creds_folder: "{{ playbook_dir }}/creds/{{ openvpn_server }}/"
+openvpn_easyrsa_path: "/etc/openvpn/easyrsa"
+
+easyrsa_dn: "cn_only"
+easyrsa_req_country: "RU"
+easyrsa_req_province: "Moscow"
+easyrsa_req_city: "Moscow city"
+easyrsa_req_org: "IT Certificate Co"
+easyrsa_req_email: "IT@company.com"
+easyrsa_req_ou: "IT EntNet"
+
+easyrsa_keysize: 2048
+easyrsa_digest: "sha256"
+
+easyrsa_clients:
+  - client1
+  - client2
+  - client3
+  - client4
+  - client5
+  - melnik_dv
+  - denis_tmp
+  - brutalhz
+  - user123
+  - itt
+
+eth: ens160
+proto: udp
+port: 1194
+
+load_iptables_rules: false
+iptables_path: "/sbin/iptables"

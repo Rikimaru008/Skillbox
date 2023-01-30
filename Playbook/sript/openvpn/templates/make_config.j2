@@ -1,0 +1,18 @@
+#!/bin/bash
+clients="{{ easyrsa_clients }}"
+clients=`echo $clients | tr -d '[],'`
+clients=`echo $clients | tr -d \'`
+for item in $clients
+do
+cat {{ openvpn_path }}/$item.conf \
+    <(echo -e '<ca>') \
+    {{ openvpn_ca_key }} \
+    <(echo -e '</ca>\n<cert>') \
+    {{ openvpn_path }}/server/${item}.crt \
+    <(echo -e '</cert>\n<key>') \
+    {{ openvpn_path }}/server/${item}.key \
+    <(echo -e '</key>\n<tls-crypt>') \
+    {{ openvpn_tls_key }} \
+    <(echo -e '</tls-crypt>') \
+    > {{ openvpn_output_dir }}/$item.ovpn
+done
