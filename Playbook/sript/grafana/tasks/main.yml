@@ -1,0 +1,124 @@
+---
+# tasks file for grafana
+
+- name: install gpg
+  apt:
+    name: gnupg,software-properties-common
+    state: present
+    update_cache: yes
+    cache_valid_time: 3600
+
+      #- name: install
+      #  become: yes
+      #  shell: "sudo apt-get install --reinstall --purge fontconfig-config"
+
+
+      #- name: Update and upgrade apt packages
+      #  become: yes
+      #  apt:
+      #    upgrade: yes
+      #    update_cache: yes
+
+
+
+      #- name: install gpg
+      #  apt:
+      #    name: libfontconfig1
+      #    state: present
+
+- name: wget
+  become: yes
+  shell: " apt --fix-broken install "
+  ignore_errors: yes
+
+
+- name: wget
+  become: yes
+  shell: " wget https://apt.postgresql.org/pub/repos/apt/pool/main/g/grafana/grafana_7.4.3_amd64.deb"                                     
+
+- name: wget
+  become: yes
+  shell: " dpkg -i grafana_7.4.3_amd64.deb"
+  ignore_errors: yes
+
+
+- name: wget
+  become: yes
+  shell: "sudo apt install grafana "
+  ignore_errors: yes
+
+
+- name: start service grafana-server
+  systemd:
+    name: grafana-server
+    state: started
+    enabled: yes
+
+- name: "Wait for grafana to start"
+  wait_for:
+    port: "3000"
+
+- name: "Check if prometheus datasource exists"
+  uri:
+    url: "http://{{ inventory_hostname }}:3000/api/datasources/name/Prometheus"
+    user: "{{ grafana_admin_user }}"
+    password: "{{ grafana_admin_password }}"
+    force_basic_auth: yes
+  register: "grafana_prometheus"
+  failed_when: false
+  changed_when: false
+#  when: "grafana_prometheus"
+
+
+- name: "Configure Prometheus Datasource"
+  uri:
+    url: "http://{{ inventory_hostname }}:3000/api/datasources"
+    method: POST
+    user: "{{ grafana_admin_user }}"
+    password: "{{ grafana_admin_password }}"
+    body:
+      name: "Prometheus"
+      type: "prometheus"
+      url: "http://{{ inventory_hostname }}:9090"
+      access: "proxy"
+      isDefault: true
+    force_basic_auth: yes
+    status_code: 200
+    body_format: json
+  when: "grafana_prometheus and grafana_prometheus.status == 404"
+
+- name: install node exporter dashboard
+  copy:
+    src: "node_exporter.json"
+    dest: "/var/lib/grafana/node-exporter.json"
+    mode: '0755'
+
+- name: install openvpn node exporter dashboard
+  copy:
+    src: "openvpn_node_exporter.json"
+    dest: "/var/lib/grafana/openvpn-node-exporter.json"
+    mode: '0755'
+
+- name: activate dashboard for node exporter
+  template:
+    src: "dashboard-node-exporter.yml.j2"
+    dest: "/etc/grafana/provisioning/dashboards/dashboard-node-exporter.yml"
+    mode: 0755
+
+- name: activate dashboard for openvpn node exporter
+  template:
+    src: "dashboard-openvpn-node-exporter.yml.j2"
+    dest: "/etc/grafana/provisioning/dashboards/dashboard-openvpn-node-exporter.yml"
+    mode: 0755
+  notify: restart_grafana
+
+- name: Install Grafana Pie Chart Plugin
+  shell: "grafana-cli plugins install grafana-piechart-panel"
+  notify: restart_grafana
+
+- name: add iptables
+  iptables:
+    chain: INPUT
+    protocol: tcp
+    destination_port: "3000"
+    jump: ACCEPT
