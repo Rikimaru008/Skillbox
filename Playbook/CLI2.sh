@@ -29,8 +29,8 @@ yc vpc subnet create \
  
  
 yc compute instance create \
-  --name my-yc-instance \
-  --network-interface subnet-name=backup,nat-ip-version=ipv4 \
+  --name backup \
+  --network-interface subnet-name=my-yc-subnet-a,nat-ip-version=ipv4 \
   --zone ru-central1-a \
   --ssh-key ~/.ssh/id_rsa.pub 
 
@@ -38,14 +38,14 @@ yc compute instance create \
 
   
 yc compute instance create \
-  --name my-yc-instance \
-  --network-interface subnet-name=monitoring,nat-ip-version=ipv4 \
+  --name monitoring \
+  --network-interface subnet-name=my-yc-subnet-a,nat-ip-version=ipv4 \
   --zone ru-central1-a \
   --ssh-key ~/.ssh/id_rsa.pub 
   
 yc compute instance create \
-  --name my-yc-instance \
-  --network-interface subnet-name=openvpn,nat-ip-version=ipv4 \
+  --name openvpn \
+  --network-interface subnet-name=my-yc-subnet-a,nat-ip-version=ipv4 \
   --zone ru-central1-a \
   --ssh-key ~/.ssh/id_rsa.pub 
   
