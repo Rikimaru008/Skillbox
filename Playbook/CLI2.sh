@@ -50,5 +50,5 @@ yc compute instance create \
   --ssh-key ~/.ssh/id_rsa.pub 
 
 yc compute instance get backup
-yc compute instance get monitoring
 yc compute instance get openvpn
+yc compute instance get monitoring
