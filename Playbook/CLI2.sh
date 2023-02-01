@@ -9,7 +9,7 @@ fi
 
 
 
-sudo apt-get upgrade
+sudo apt-get update
 
 yc vpc network create \
   --name my-yc-network \
