@@ -48,6 +48,7 @@ yc compute instance create \
   --network-interface subnet-name=my-yc-subnet-a,nat-ip-version=ipv4 \
   --zone ru-central1-a \
   --ssh-key ~/.ssh/id_rsa.pub 
-  
-yc vpc network list  
-  
+
+yc compute instance get backup
+yc compute instance get monitoring
+yc compute instance get openvpn
