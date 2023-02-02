@@ -18,3 +18,8 @@ yc compute disk resize $monitoring --size 18
 yc compute instance start backup
 yc compute instance start openvpn
 yc compute instance start monitoring
+
+
+yc compute instance get backup
+yc compute instance get openvpn
+yc compute instance get monitoring
