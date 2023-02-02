@@ -1,0 +1,8 @@
+---
+# defaults file for monitor
+prometheus_dir_configuration: "/etc/prometheus"
+prometheus_retention_time: "365d"
+prometheus_scrape_interval: "30s"
+prometheus_node_exporter_group: "all"
+prometheus_env: "production"
+openvpn_host: "192.168.244.181"

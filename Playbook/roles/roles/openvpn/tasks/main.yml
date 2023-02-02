@@ -1,0 +1,266 @@
+---
+- name: install OpenVPN
+  package:
+    name: openvpn
+    state: present
+
+- name: packages | ensure apt list dir exists
+  file:
+    path: /var/lib/apt/lists/
+    state: directory
+    mode: 0755
+
+- name: Install git
+  apt:
+    name: git
+    state: present
+    update_cache: yes
+    
+
+- name: EasyRSA Checkout
+  git: 
+    repo: https://github.com/OpenVPN/easy-rsa.git
+    accept_hostkey: True
+    remote: github
+    version: "{{ openvpn_easyrsa_version }}"
+    dest: "{{ openvpn_path }}/easyrsa"
+    force: yes
+
+- name: chmod easyrsa
+  file:
+    path: "{{ openvpn_path }}/easyrsa"
+    owner: root
+    group: root
+    mode: 0700
+    state: directory
+    recurse: yes
+
+- name: Init pki
+  command: ./easyrsa init-pki
+  args: 
+    chdir: "{{ openvpn_easyrsa_path }}/easyrsa3"
+    creates: "{{ openvpn_easyrsa_path }}/easyrsa3/pki"
+
+- name: Configure easy-rsa
+  template:
+    src: vars.j2
+    dest: "{{ openvpn_easyrsa_path }}/easyrsa3/pki/vars"
+    owner: root
+    group: root
+    force: yes
+
+- name: Build CA Keys
+  command: ./easyrsa build-ca nopass
+  args:
+    chdir: "{{ openvpn_easyrsa_path }}/easyrsa3"
+    creates: "{{ openvpn_easyrsa_path }}/easyrsa3/pki/private/ca.key"
+ 
+- name: Build the DH key
+  command: ./easyrsa gen-dh
+  args:
+    chdir: "{{ openvpn_easyrsa_path }}/easyrsa3"
+    creates: "{{ openvpn_easyrsa_path }}/easyrsa3/pki/dh.pem"
+
+- name: Generate the server cert/key #######?????
+  command: ./easyrsa --req-cn=server gen-req server nopass
+  args:
+    chdir: "{{ openvpn_easyrsa_path }}/easyrsa3"
+    creates: "{{ openvpn_easyrsa_path }}/easyrsa3/pki/private/server.key"
+
+- name: Get the new CA to sign our server key
+  command: ./easyrsa sign-req server server
+  args:
+    chdir: "{{ openvpn_easyrsa_path }}/easyrsa3"
+    creates: "{{ openvpn_easyrsa_path }}/easyrsa3/pki/issued/server.crt"
+
+- name: Build ta.key
+  command: openvpn --genkey --secret {{ openvpn_easyrsa_path }}/easyrsa3/pki/ta.key
+  args:
+    chdir: "{{ openvpn_easyrsa_path }}/easyrsa3/pki"
+    creates: "{{ openvpn_easyrsa_path }}/easyrsa3/pki/ta.key"
+
+###############Begin OpenVPN Server Block ############################
+
+- name: Check folder exists
+  stat:
+    path: "{{ openvpn_path }}/server"
+  register: dir
+
+- name: Create server folder if doesn't exist
+  file:
+    path: "{{ openvpn_path }}/server/issued && {{ openvpn_path }}/server/private"
+    state: directory
+    owner: root
+    group: root
+    mode: 0640
+    recurse: yes
+  when: dir.stat.exists == false
+
+- name: "copy files to {{ openvpn_path }}/server"
+  copy:
+    src: "{{ openvpn_easyrsa_path }}/easyrsa3/pki/{{ item }}"
+    dest: "{{ openvpn_path }}/server"
+    owner: root
+    group: root
+    mode: 0640
+    remote_src: yes
+  loop:
+    - ca.crt
+    - dh.pem
+    - ta.key
+    - issued/server.crt
+    - private/ca.key
+    - private/server.key
+
+- name: Enable IPv4 traffic forwarding
+  sysctl:
+    name: net.ipv4.ip_forward
+    value: 1
+
+- name: Copy OpenVPN server config files into place
+  template:
+    src: server.conf.j2
+    dest: "{{ openvpn_path }}/server/server.conf"
+    owner: root
+    mode: 0640
+  notify:
+    - start openvpn
+
+- name: Enable services
+  service:
+    name: "openvpn-server@server"
+    enabled: true
+  notify:
+    - start openvpn
+
+###############End OpenVPN Server Block ##############################
+
+###############Begin OpenVPN Client Block ############################
+
+- name: Create OpenVPN client config files into place
+  template:
+    src: client.conf.j2
+    dest: "{{ openvpn_path }}/{{ item }}.conf"
+    owner: root
+    group: root
+    mode: 0700
+  with_items: "{{ easyrsa_clients }}"
+
+- name: Make local dest folder for OpenVPN creds
+  local_action: file path={{ local_creds_folder }}/ state=directory
+  become: False
+
+- name: Create directories for clients
+  file:
+    path: "/home/ubuntu/clients/keys/"
+    state: directory
+    owner: root
+    group: root
+    recurse: yes
+    mode: 0700
+
+- name: Creates the client keys
+  command: ./easyrsa --req-cn={{ item }} gen-req {{ item }} nopass
+  args:
+    chdir: "{{ openvpn_easyrsa_path }}/easyrsa3"
+    creates: "{{ openvpn_easyrsa_path }}/easyrsa3/pki/private/{{ item }}.key"
+  with_items: "{{ easyrsa_clients }}"
+
+- name: "Copy {{ item }}.key"
+  command: "cp -rf {{ openvpn_easyrsa_path }}/easyrsa3/pki/private/{{ item }}.key /home/ubuntu/clients/keys/"
+  with_items: "{{ easyrsa_clients }}"
+
+- name: Get the cert auth to sign the client request
+  command: ./easyrsa sign-req client {{ item }}
+  args:
+    chdir: "{{ openvpn_easyrsa_path }}/easyrsa3"
+    creates: "{{ openvpn_easyrsa_path }}/easyrsa3/pki/issued/{{ item }}.crt"
+  with_items: "{{ easyrsa_clients }}"
+
+- name: copy key files to {{ openvpn_path }}/server
+  copy:
+    src: "{{ openvpn_easyrsa_path }}/easyrsa3/pki/private/{{ item }}.key"
+    dest: "{{ openvpn_path }}/server/"
+    mode: 0640
+    remote_src: yes
+  with_items: "{{ easyrsa_clients }}"
+
+- name: copy crt files to {{ openvpn_path }}/server
+  copy:
+    src: "{{ openvpn_easyrsa_path }}/easyrsa3/pki/issued/{{ item }}.crt"
+    dest: "{{ openvpn_path }}/server/"
+    mode: 0640
+    remote_src: yes
+  with_items: "{{ easyrsa_clients }}"
+
+- name: make config
+  template:
+    src: make_config.j2
+    dest: "{{ openvpn_path }}/make_config.sh"
+    owner: root
+    group: root
+    mode: 0744
+  with_items: "{{ easyrsa_clients }}"
+
+- name: make ovpn
+  shell: "{{ openvpn_path }}/make_config.sh"
+  changed_when: false
+  args:
+    executable: /bin/bash
+  with_items: "{{ easyrsa_clients }}"
+
+- name: copy clients ovpn to local host
+  fetch:
+    src: "/home/ubuntu/clients/{{ item }}.ovpn"
+    dest: "{{ local_creds_folder }}"
+    flat: yes
+  with_items: "{{ easyrsa_clients }}"
+
+###############End OpenVPN Client Block ##############################
+
+###############Start IPTABLES Block ##################################
+
+- name: OpenVPN | Firewall | Reread ansible_default_ipv4
+  setup:
+    filter: ansible_default_ipv4*
+
+- name: OpenVPN | Firewall | Flush existing firewall rules
+  iptables:
+    flush: true
+
+- iptables:
+    chain: INPUT
+    protocol: tcp
+    destination_port: "22"
+    jump: ACCEPT
+    comment: Allow SSH
+
+- iptables:
+    chain: INPUT
+    protocol: tcp
+    destination: "23"
+    jump: "ACCEPT"
+    comment: "allow backup"
+  
+- name: OpenVPN | Firewall | Write iptables rules file
+  template:
+    src: iptables_rules.j2
+    dest: "{{ openvpn_path }}/OpenVPN_rules.sh"
+    owner: root
+    group: root
+    mode: 0744
+
+#- name: OpenVPN | Firewall | Load iptables rules
+#  shell: "sh {{ openvpn_path }}/OpenVPN_rules.sh"
+#  changed_when: false
+#  args:
+#    executable: /bin/bash
+
+- name: OpenVPN | Firewall | Load iptables rules
+  command: "{{ openvpn_path }}/OpenVPN_rules.sh"
+  changed_when: false
+
+- name: disable ufw
+  command: ufw disable
+
+###############End IPTABLES Block ####################################

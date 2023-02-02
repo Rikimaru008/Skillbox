@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# OpenVPN
+{{ iptables_path }} -A INPUT -i "{{ eth }}" -m state --state NEW -p "{{ proto }}" --dport "{{ port }}" -j ACCEPT
+# Allow TUN interface connections to OpenVPN server
+{{ iptables_path }} -A INPUT -i tun+ -j ACCEPT
+# Allow TUN interface connections to be forwarded through other interfaces
+{{ iptables_path }} -A FORWARD -i tun+ -j ACCEPT
+{{ iptables_path }} -A FORWARD -i tun+ -o "{{ eth }}" -m state --state RELATED,ESTABLISHED -j ACCEPT
+{{ iptables_path }} -A FORWARD -i "{{ eth }}" -o tun+ -m state --state RELATED,ESTABLISHED -j ACCEPT
+# NAT the VPN client traffic to the internet
+{{ iptables_path }} -t nat -A POSTROUTING -s 10.200.0.0/24 -o "{{ eth }}" -j MASQUERADE
