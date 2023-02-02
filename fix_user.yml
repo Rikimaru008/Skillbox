@@ -2,6 +2,12 @@
 - hosts: all
   become: yes
   tasks:
+  - name: Add a group called ubuntu
+    group:
+      name: ubuntu
+      state: present
+
   - user: name=ubuntu shell=/bin/bash home=/home/ubuntu createhome=yes group=ubuntu state=present
   - file: path=/home/ubuntu owner=ubuntu group=ubuntu mode=0700 state=directory
   - file: path=/home/ubuntu/.ssh owner=ubuntu group=ubuntu mode=0700 state=directory
+~      
