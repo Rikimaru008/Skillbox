@@ -2,11 +2,10 @@
 - hosts: backup
   become: yes
   vars:
-    user: ubuntu
-    group: ubuntu
-    home: /home/ubuntu
+    user: borg
+    group: borg
+    home: /home/borg
     script_dir: /opt/borg_backups
-
   tasks:
     - name: install borgbackup
       apt:
@@ -68,7 +67,6 @@
   become: yes
   roles:
     - ssh
-#    - lemp
     - monitor
     - grafana
     - borgbackup
