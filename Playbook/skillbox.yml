@@ -11,6 +11,13 @@
       apt:
         name: borgbackup
         state: present
+    - name: Add a group called ubuntu
+      group:
+        name: borg
+        state: present
+
+ 
+    
     - user: name="{{ user }}" shell=/bin/bash home="{{ home }}" createhome=yes group="{{ group }}" state=present
     - file: path="{{ home }}" owner="{{ user }}" group="{{ group }}" mode=0700 state=directory
     - file: path="{{ home }}/.ssh" owner="{{ user }}" group="{{ group }}" mode=0700 state=directory
