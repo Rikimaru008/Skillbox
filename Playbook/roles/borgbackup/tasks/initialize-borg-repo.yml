@@ -2,9 +2,10 @@
   block:
     - name: check status of borg repo
       shell: "borg info {{ target_location }}"
-      ignore_errors: yes      
+      ignore_errors: yes
   rescue:
-- name: initialize borg
-  become: yes
-  command: "borg init -e none {{ target_location }}"
+    - name: initialize borg
+      become: yes
+      command: "borg init -e none {{ target_location }}"
+
         
