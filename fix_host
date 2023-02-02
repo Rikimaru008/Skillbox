@@ -1,6 +1,3 @@
-[clients:children]
-openvpn
-monitoring
 
 [backup]
 Сюда_ip
