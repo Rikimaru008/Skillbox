@@ -1,0 +1,24 @@
+---
+# tasks file for ssh
+- name: Generate an OpenSSH keypair with the default values (4096 bits, rsa)
+  openssh_keypair:
+    path: /root/.ssh/id_rsa
+    owner: root
+    group: root
+  register: ssh_key
+
+- name: Fix owner of the generated pub key
+  file:
+    path: /root/.ssh/id_rsa.pub
+    owner: root
+    group: root
+
+- name: Store public key into origin
+  delegate_to: "{{ backup_server }}"
+  authorized_key:
+     key: "{{ ssh_key.public_key }}"
+     comment: "{{ ansible_hostname }}"
+     user: borg
+     
+- name: Add key to known_hosts
+  shell: "ssh-keyscan -t rsa {{ backup_server }} > ~/.ssh/known_hosts"
