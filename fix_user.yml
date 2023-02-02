@@ -10,4 +10,12 @@
   - user: name=ubuntu shell=/bin/bash home=/home/ubuntu createhome=yes group=ubuntu state=present
   - file: path=/home/ubuntu owner=ubuntu group=ubuntu mode=0700 state=directory
   - file: path=/home/ubuntu/.ssh owner=ubuntu group=ubuntu mode=0700 state=directory
-~      
+
+  - name: Deploy SSH Public Key
+    ansible.posix.authorized_key:
+      user: ubuntu
+      state: present
+      key: "{{ lookup('file', '/home/riki/.ssh/id_rsa.pub') }}"
+
+
+
