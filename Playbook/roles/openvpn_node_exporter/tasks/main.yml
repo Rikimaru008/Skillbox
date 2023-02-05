@@ -1,5 +1,4 @@
 ---
-# tasks file for openvpn_node_exporter
 - name: Install GO
   apt:
     name: "golang"
@@ -9,6 +8,10 @@
   file:
     path: ~/Downloads/
     state: directory
+
+
+- name: ls echo
+  shell: " ls -la "
 
 
 - name: Delete the file, if it does exist already
