@@ -1,6 +1,6 @@
 ---
 # defaults file for easyrsa
-easyrsa_version: "3.0.1"
+easyrsa_version: "3.1.2"
 easyrsa_dest: "/usr/share/easy-rsa"
 
 easyrsa_dn: "cn_only"
@@ -14,5 +14,3 @@ easyrsa_req_ou: "My Organizational Unit"
 easyrsa_keysize: 2048
 easyrsa_digest: "sha256"
 
-easyrsa_clients:
-  - name: client1
