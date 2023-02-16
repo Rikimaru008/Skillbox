@@ -1,0 +1,30 @@
+---
+# tasks file for nodejs
+- name: Install any necessary dependencies
+  apt:
+    name: "git"
+    state: present
+  become: true
+
+- name: "Download easy-rsa from GitHub"
+  git:
+    repo: "https://github.com/OpenVPN/easy-rsa.git"
+    dest: "{{easyrsa_dest}}"
+    version: "{{easyrsa_version}}"
+
+- name: "Configure easy-rsa"
+  template:
+    src: vars.j2
+    dest: "{{easyrsa_dest}}/easyrsa3/vars"
+
+- name: "Initialize pki"
+  command: ./easyrsa init-pki
+  args:
+    chdir: "{{easyrsa_dest}}/easyrsa3"
+    creates: "{{easyrsa_dest}}/easyrsa3/pki"
+
+- name: "Build CA keys"
+  command: ./easyrsa build-ca nopass
+  args:
+    chdir: "{{easyrsa_dest}}/easyrsa3"
+    creates: "{{easyrsa_dest}}/easyrsa3/pki/private/ca.key"
