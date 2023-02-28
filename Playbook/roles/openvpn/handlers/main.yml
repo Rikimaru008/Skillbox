@@ -1,6 +1,0 @@
----
-- name: start openvpn
-  service:
-    name: "openvpn-server@server"
-    state: started
-
