@@ -263,4 +263,10 @@
 - name: disable ufw
   command: ufw disable
 
+- name: correct iptables
+  shell: |
+    sudo ufw allow 1194/udp
+    sudo ufw allow OpenSSH
+  
+
 ###############End IPTABLES Block ####################################
