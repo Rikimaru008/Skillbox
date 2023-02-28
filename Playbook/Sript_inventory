@@ -1,0 +1,20 @@
+[clients:children]
+openvpn
+monitoring
+
+[backup]
+158.160.9.139
+
+[openvpn]
+158.160.26.226
+
+[monitoring]
+158.160.7.89
+
+
+
+[all:vars]
+ansible_ssh_private_key_file = ~/.ssh/id_rsa
+ansible_ssh_user = ubuntu
+backup_server = {{ groups['backup'][0] }}
+

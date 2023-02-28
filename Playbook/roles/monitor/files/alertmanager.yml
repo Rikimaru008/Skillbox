@@ -1,0 +1,27 @@
+global:
+  resolve_timeout: 1m
+
+route:
+  group_by: ['alertname']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 7d
+  receiver: 'email_notifications'
+receivers:
+- name: 'email_notifications'
+  email_configs:
+  - to: pavel_261000@mail.ru
+    from: alertpipi@gmail.com
+    smarthost: smtp.gmail.com:587
+    auth_username: alertpipi@gmail.com
+    auth_identity: alertpipi@gmail.com
+    auth_password: ohhgjyorlrhvxvaf
+    send_resolved: true
+
+
+#inhibit_rules:
+#  - source_match:
+#      severity: 'critical'
+#    target_match:
+#      severity: 'warning'
+#    equal: ['alertname', 'dev', 'instance']
