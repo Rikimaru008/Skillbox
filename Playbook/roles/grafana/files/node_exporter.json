@@ -14665,8 +14665,8 @@
       {
         "current": {
           "selected": false,
-          "text": "192.168.244.182:9100",
-          "value": "192.168.244.182:9100"
+          "text": "{{ open_server }}:9100",
+          "value": "{{ open_server }}:9100"
         },
         "datasource": {
           "type": "prometheus",
