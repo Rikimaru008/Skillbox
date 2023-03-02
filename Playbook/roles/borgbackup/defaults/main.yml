@@ -1,6 +1,6 @@
 ---
 # defaults file for ansible-borg
-backup_server: 192.168.244.179
+backup_server: {{ backup_server }}
 backup_user: borg
 protocol: ssh
 backup_port: 22
