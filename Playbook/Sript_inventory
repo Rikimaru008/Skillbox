@@ -3,13 +3,13 @@ openvpn
 monitoring
 
 [backup]
-158.160.9.139
+Сюда вставить ip
 
 [openvpn]
-158.160.26.226
+Сюда вставить ip
 
 [monitoring]
-158.160.7.89
+Сюда вставить ip
 
 
 
